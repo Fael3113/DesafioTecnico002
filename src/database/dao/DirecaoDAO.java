@@ -96,8 +96,8 @@ public class DirecaoDAO {
 		pstInsert.setString(3, tb.getDirecao_destino());
 		pstInsert.setString(4, tb.getUsuario_origem());
 		pstInsert.setString(5, tb.getUsuario_destino());
-		pstInsert.setString(6, tb.getSenha_origem());
-		pstInsert.setString(7, tb.getSenha_destino());
+		pstInsert.setString(6, tb.getSenha_origem(pwfSenhaOrigem.getPassword()));
+		pstInsert.setString(7, tb.getSenha_destino(pwfSenhaDestino.getPassword()));
 		pstInsert.setBoolean(8, tb.isHabilitado());
 		pstInsert.executeUpdate();
 	}
@@ -108,8 +108,8 @@ public class DirecaoDAO {
 		pstUpdate.setString(3, tb.getDirecao_destino());
 		pstUpdate.setString(4, tb.getUsuario_origem());
 		pstUpdate.setString(5, tb.getUsuario_destino());
-		pstUpdate.setString(6, tb.getSenha_origem());
-		pstUpdate.setString(7, tb.getSenha_destino());
+		pstUpdate.setString(6, tb.getSenha_origem(pwfSenhaOrigem.getPassword()));
+		pstUpdate.setString(7, tb.getSenha_destino(pwfSenhaDestino.getPassword()));
 		pstUpdate.setBoolean(8, tb.isHabilitado());
 		pstUpdate.executeUpdate();
 	}

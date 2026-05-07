@@ -55,7 +55,7 @@ public class TB_REPLICACAO_DIRECAO {
 		this.usuario_destino = usuario_destino;
 	}
 
-	public String getSenha_origem() {
+	public String getSenha_origem(char[] password) {
 		return senha_origem;
 	}
 
@@ -63,7 +63,7 @@ public class TB_REPLICACAO_DIRECAO {
 		this.senha_origem = senha_origem;
 	}
 
-	public String getSenha_destino() {
+	public String getSenha_destino(char[] password) {
 		return senha_destino;
 	}
 

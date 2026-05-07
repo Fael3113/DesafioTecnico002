@@ -1,28 +1,42 @@
 package view;
 
+import database.dao.DirecaoDAO;
 import database.model.TB_REPLICACAO_DIRECAO;
+import database.model.TB_REPLICACAO_PROCESSO;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class TelaReplicacaoDirecaoView extends JFrame {
 
-	private JTextField txfId;
-	private JComboBox<TB_REPLICACAO_DIRECAO> cbProcesso;
-	private JTextField txfDirecaoOrigem;
-	private JTextField txfDirecaoDestino;
-	private JTextField txfUsuarioOrigem;
-	private JTextField txfUsuarioDestino;
-	private JPasswordField pwfSenhaOrigem;
-	private JPasswordField pwfSenhaDestino;
-	private JCheckBox chkHabilitado;
+	private enum ModoTela{NENHUM, INSERT, UPDATE}
+	private TelaReplicacaoDirecaoView.ModoTela modoTela = ModoTela.NENHUM;
 
-	private JButton btnSalvar;
-	private JButton btnAdicionar;
-	private JButton btnBuscar;
-	private JButton btnExcluir;
+	private final Connection conn;
+	private final DirecaoDAO dao;
 
-	public TelaReplicacaoDirecaoView() {
+	private final JTextField txfId;
+	private final JComboBox<TB_REPLICACAO_PROCESSO> cbProcesso;
+	private final JTextField txfDirecaoOrigem;
+	private final JTextField txfDirecaoDestino;
+	private final JTextField txfUsuarioOrigem;
+	private final JTextField txfUsuarioDestino;
+	private final JPasswordField pwfSenhaOrigem;
+	private final JPasswordField pwfSenhaDestino;
+	private final JCheckBox chkHabilitado;
+
+	private final JButton btnSalvar;
+	private final JButton btnAdicionar;
+	private final JButton btnBuscar;
+	private final JButton btnExcluir;
+
+	public TelaReplicacaoDirecaoView(Connection conn) throws SQLException {
+
+		this.conn = conn;
+		this.dao = new DirecaoDAO(conn);
+
 		setTitle("Cadastro de Direção");
 		setSize(600, 560);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -117,10 +131,229 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 		chkHabilitado = new JCheckBox("Habilitado");
 		chkHabilitado.setBounds(10, 400, 120, 30);
 		getContentPane().add(chkHabilitado);
-	}
 
-	public static void main(String[] args) {
-		new TelaReplicacaoDirecaoView().setVisible(true);
-	}
+		txfId.setEnabled(false);
+		cbProcesso.setEnabled(false);
+		txfDirecaoOrigem.setEnabled(false);
+		txfDirecaoDestino.setEnabled(false);
+		txfUsuarioOrigem.setEnabled(false);
+		txfUsuarioDestino.setEnabled(false);
+		pwfSenhaOrigem.setEnabled(false);
+		pwfSenhaDestino.setEnabled(false);
 
+		btnSalvar.setEnabled(false);
+		btnExcluir.setEnabled(false);
+
+		btnAdicionar.addActionListener(e -> {
+			modoTela = ModoTela.INSERT;
+
+			txfId.setText("");
+
+			if (cbProcesso.getItemCount() > 0) {
+				cbProcesso.setSelectedIndex(0);
+			}
+
+			chkHabilitado.setSelected(true);
+
+			txfDirecaoOrigem.setText("");
+			txfDirecaoDestino.setText("");
+			txfUsuarioOrigem.setText("");
+			txfUsuarioDestino.setText("");
+			pwfSenhaOrigem.setText("");
+			pwfSenhaDestino.setText("");
+
+			cbProcesso.setEnabled(true);
+			chkHabilitado.setEnabled(true);
+			txfUsuarioOrigem.setEnabled(true);
+			txfUsuarioDestino.setEnabled(true);
+			txfDirecaoOrigem.setEnabled(true);
+			txfDirecaoDestino.setEnabled(true);
+			pwfSenhaOrigem.setEnabled(true);
+			pwfSenhaDestino.setEnabled(true);
+
+
+			btnSalvar.setEnabled(true);
+			btnExcluir.setEnabled(false);
+
+		});
+
+		btnSalvar.addActionListener(e -> {
+			try {
+				if (cbProcesso.getSelectedItem() == null){
+					JOptionPane.showMessageDialog(this, "Selecione um processo");
+					return;
+				}
+
+				if (txfDirecaoOrigem.getText().trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite uma direcao origem");
+					return;
+				}
+
+				if (txfDirecaoDestino.getText().trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite uma direcao destino");
+					return;
+				}
+
+				if (new String(pwfSenhaOrigem.getPassword()).trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite uma senha origem");
+					return;
+				}
+
+				if (new String(pwfSenhaDestino.getPassword()).trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite uma senha destino");
+					return;
+				}
+
+				if (txfUsuarioOrigem.getText().trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite um usuario origem");
+					return;
+				}
+
+				if (txfUsuarioDestino.getText().trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite um usuario destino");
+					return;
+				}
+
+				TB_REPLICACAO_PROCESSO pSel = (TB_REPLICACAO_PROCESSO) cbProcesso.getSelectedItem();
+
+				TB_REPLICACAO_DIRECAO d = new TB_REPLICACAO_DIRECAO();
+				d.setProcesso_id(pSel.getId());
+				d.setHabilitado(chkHabilitado.isSelected());
+				d.setDirecao_origem(txfDirecaoOrigem.getText());
+				d.setDirecao_destino(txfDirecaoDestino.getText());
+				d.setUsuario_origem(txfUsuarioOrigem.getText());
+				d.setUsuario_destino(txfUsuarioDestino.getText());
+				d.getSenha_origem(pwfSenhaOrigem.getPassword());
+				d.getSenha_destino(pwfSenhaDestino.getPassword());
+				
+				if (modoTela == ModoTela.INSERT) {
+					dao.insert(d);
+					JOptionPane.showMessageDialog(this, "Inserido com sucesso");
+				} else if (modoTela == ModoTela.UPDATE) {
+					if (txfId.getText().trim().isEmpty()){
+						JOptionPane.showMessageDialog(this, "Digite o id do processo");
+						return;
+					}
+					d.setId(Integer.parseInt(txfId.getText()));
+					dao.update(d);
+					JOptionPane.showMessageDialog(this, "Atualizado com sucesso");
+				} else {
+					JOptionPane.showMessageDialog(this, "Clique em Adicionar ou Buscar antes de salvar");
+				}
+
+				modoTela = ModoTela.NENHUM;
+
+				txfId.setEnabled(false);
+				cbProcesso.setEnabled(false);
+				txfDirecaoOrigem.setEnabled(false);
+				txfDirecaoDestino.setEnabled(false);
+				txfUsuarioOrigem.setEnabled(false);
+				txfUsuarioDestino.setEnabled(false);
+				pwfSenhaOrigem.setEnabled(false);
+				pwfSenhaDestino.setEnabled(false);
+
+				btnSalvar.setEnabled(false);
+				btnExcluir.setEnabled(false);
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this, "Erro ao atualizar:"+ex.getMessage());
+			}
+		});
+
+		btnExcluir.addActionListener(e -> {
+			try {
+				if (txfId.getText().trim().isEmpty()){
+					JOptionPane.showMessageDialog(this, "Digite o id do processo");
+					return;
+				}
+
+				int op = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir?", "Excluir", JOptionPane.YES_NO_OPTION);
+				if (op != JOptionPane.YES_OPTION) return;
+
+				long id = Long.parseLong(txfId.getText());
+				dao.delete(id);
+				JOptionPane.showMessageDialog(this, "Processo excluído!");
+
+				modoTela = ModoTela.NENHUM;
+
+				txfId.setText("");
+				txfDirecaoOrigem.setText("");
+				txfDirecaoDestino.setText("");
+				txfUsuarioOrigem.setText("");
+				txfUsuarioDestino.setText("");
+				pwfSenhaOrigem.setText("");
+				pwfSenhaDestino.setText("");
+				chkHabilitado.setSelected(false);
+
+				txfId.setEnabled(false);
+				cbProcesso.setEnabled(false);
+				txfDirecaoOrigem.setEnabled(false);
+				txfDirecaoDestino.setEnabled(false);
+				txfUsuarioOrigem.setEnabled(false);
+				txfUsuarioDestino.setEnabled(false);
+				pwfSenhaOrigem.setEnabled(false);
+				pwfSenhaDestino.setEnabled(false);
+				chkHabilitado.setEnabled(false);
+
+				btnBuscar.setEnabled(false);
+				btnAdicionar.setEnabled(false);
+				btnSalvar.setEnabled(false);
+				btnExcluir.setEnabled(false);
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this, "Erro ao excluir:"+ex.getMessage());
+			}
+		});
+
+		btnBuscar.addActionListener(e -> {
+			try {
+				ConsultarDirecaoDialog dlg = new ConsultarDirecaoDialog(this, dao);
+				dlg.setVisible(true);
+
+				TB_REPLICACAO_DIRECAO sel = dlg.getSelecionado();
+
+				if (sel == null) return;
+
+				modoTela = ModoTela.UPDATE;
+
+				txfId.setText(String.valueOf(sel.getId()));
+				txfDirecaoOrigem.setText(sel.getDirecao_origem());
+				txfDirecaoDestino.setText(sel.getDirecao_destino());
+				cbProcesso.setSelectedItem(sel.getProcesso_id());
+				chkHabilitado.setSelected(sel.isHabilitado());
+				txfUsuarioOrigem.setText(sel.getUsuario_origem());
+				txfUsuarioDestino.setText(sel.getUsuario_destino());
+				pwfSenhaOrigem.setText(sel.getUsuario_destino());
+				pwfSenhaDestino.setText(sel.getUsuario_destino());
+
+				long id = sel.getProcesso_id();
+				for (int i = 0; i < cbProcesso.getItemCount(); i++) {
+					TB_REPLICACAO_PROCESSO item = cbProcesso.getItemAt(i);
+					if (item.getId() == id) {
+						cbProcesso.setSelectedIndex(i);
+						break;
+					}
+				}
+
+				cbProcesso.setEnabled(true);
+				chkHabilitado.setEnabled(true);
+				txfUsuarioOrigem.setEnabled(true);
+				txfUsuarioDestino.setEnabled(true);
+				txfDirecaoOrigem.setEnabled(true);
+				txfDirecaoDestino.setEnabled(true);
+				pwfSenhaOrigem.setEnabled(true);
+				pwfSenhaDestino.setEnabled(true);
+
+				btnSalvar.setEnabled(true);
+				btnExcluir.setEnabled(true);
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(this, "Erro ao buscar:"+ex.getMessage());
+			}
+		});
+
+	}
 }
