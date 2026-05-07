@@ -223,8 +223,8 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 				d.setDirecao_destino(txfDirecaoDestino.getText());
 				d.setUsuario_origem(txfUsuarioOrigem.getText());
 				d.setUsuario_destino(txfUsuarioDestino.getText());
-				d.getSenha_origem(pwfSenhaOrigem.getPassword());
-				d.getSenha_destino(pwfSenhaDestino.getPassword());
+				d.setSenha_origem(new String(pwfSenhaOrigem.getPassword()));
+				d.setSenha_destino(new String(pwfSenhaDestino.getPassword()));
 				
 				if (modoTela == ModoTela.INSERT) {
 					dao.insert(d);
@@ -325,8 +325,8 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 				chkHabilitado.setSelected(sel.isHabilitado());
 				txfUsuarioOrigem.setText(sel.getUsuario_origem());
 				txfUsuarioDestino.setText(sel.getUsuario_destino());
-				pwfSenhaOrigem.setText(sel.getUsuario_destino());
-				pwfSenhaDestino.setText(sel.getUsuario_destino());
+				pwfSenhaOrigem.setText(sel.getSenha_origem());
+				pwfSenhaDestino.setText(sel.getSenha_destino());
 
 				long id = sel.getProcesso_id();
 				for (int i = 0; i < cbProcesso.getItemCount(); i++) {
