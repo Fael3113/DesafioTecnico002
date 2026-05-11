@@ -1,6 +1,7 @@
 package view;
 
 import database.dao.DirecaoDAO;
+import database.dao.ProcessoDAO;
 import database.model.TB_REPLICACAO_DIRECAO;
 import database.model.TB_REPLICACAO_PROCESSO;
 
@@ -8,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class TelaReplicacaoDirecaoView extends JFrame {
 
@@ -15,7 +17,8 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 	private TelaReplicacaoDirecaoView.ModoTela modoTela = ModoTela.NENHUM;
 
 	private final Connection conn;
-	private final DirecaoDAO dao;
+	private final DirecaoDAO daoDirecao;
+	private final ProcessoDAO daoProcesso;
 
 	private final JTextField txfId;
 	private final JComboBox<TB_REPLICACAO_PROCESSO> cbProcesso;
@@ -35,7 +38,8 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 	public TelaReplicacaoDirecaoView(Connection conn) throws SQLException {
 
 		this.conn = conn;
-		this.dao = new DirecaoDAO(conn);
+		this.daoDirecao = new DirecaoDAO(conn);
+		this.daoProcesso = new ProcessoDAO(conn);
 
 		setTitle("Cadastro de Direção");
 		setSize(600, 560);
@@ -132,6 +136,13 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 		chkHabilitado.setBounds(10, 400, 120, 30);
 		getContentPane().add(chkHabilitado);
 
+		// --- CB processo ---
+		cbProcesso.removeAll();
+		ArrayList<TB_REPLICACAO_PROCESSO> processos = daoProcesso.selectAll();
+		for(TB_REPLICACAO_PROCESSO p : processos){
+			cbProcesso.addItem(p);
+		}
+
 		txfId.setEnabled(false);
 		cbProcesso.setEnabled(false);
 		txfDirecaoOrigem.setEnabled(false);
@@ -227,7 +238,7 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 				d.setSenha_destino(new String(pwfSenhaDestino.getPassword()));
 				
 				if (modoTela == ModoTela.INSERT) {
-					dao.insert(d);
+					daoDirecao.insert(d);
 					JOptionPane.showMessageDialog(this, "Inserido com sucesso");
 				} else if (modoTela == ModoTela.UPDATE) {
 					if (txfId.getText().trim().isEmpty()){
@@ -235,7 +246,7 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 						return;
 					}
 					d.setId(Integer.parseInt(txfId.getText()));
-					dao.update(d);
+					daoDirecao.update(d);
 					JOptionPane.showMessageDialog(this, "Atualizado com sucesso");
 				} else {
 					JOptionPane.showMessageDialog(this, "Clique em Adicionar ou Buscar antes de salvar");
@@ -272,7 +283,7 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 				if (op != JOptionPane.YES_OPTION) return;
 
 				long id = Long.parseLong(txfId.getText());
-				dao.delete(id);
+				daoDirecao.delete(id);
 				JOptionPane.showMessageDialog(this, "Processo excluído!");
 
 				modoTela = ModoTela.NENHUM;
@@ -309,7 +320,7 @@ public class TelaReplicacaoDirecaoView extends JFrame {
 
 		btnBuscar.addActionListener(e -> {
 			try {
-				ConsultarDirecaoDialog dlg = new ConsultarDirecaoDialog(this, dao);
+				ConsultarDirecaoDialog dlg = new ConsultarDirecaoDialog(this, daoDirecao);
 				dlg.setVisible(true);
 
 				TB_REPLICACAO_DIRECAO sel = dlg.getSelecionado();

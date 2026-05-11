@@ -1,5 +1,6 @@
 package view;
 
+import database.dao.ProcessoDAO;
 import database.dao.ProcessoTabelaDAO;
 import database.model.TB_REPLICACAO_PROCESSO;
 import database.model.TB_REPLICACAO_PROCESSO_TABELA;
@@ -8,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class TelaReplicacaoProcessoTabelaView extends JFrame {
 
@@ -15,7 +17,8 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 	private TelaReplicacaoProcessoTabelaView.ModoTela modoTela = TelaReplicacaoProcessoTabelaView.ModoTela.NENHUM;
 
 	private final Connection conn;
-	private final ProcessoTabelaDAO dao;
+	private final ProcessoTabelaDAO daoTabela;
+	private final ProcessoDAO daoProcesso;
 
 	private final JTextField txfId;
 	private final JComboBox<TB_REPLICACAO_PROCESSO> cbProcesso;
@@ -33,7 +36,8 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 	public TelaReplicacaoProcessoTabelaView(Connection conn) throws SQLException {
 
 		this.conn = conn;
-		this.dao = new ProcessoTabelaDAO(conn);
+		this.daoTabela = new ProcessoTabelaDAO(conn);
+		this.daoProcesso = new ProcessoDAO(conn);
 
 		setTitle("Cadastro de Replicação");
 		setSize(600, 500);
@@ -112,6 +116,13 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 		chkHabilitado.setBounds(10, 350, 120, 30);
 		getContentPane().add(chkHabilitado);
 
+		// --- CB processo ---
+		cbProcesso.removeAll();
+		ArrayList<TB_REPLICACAO_PROCESSO> processos = daoProcesso.selectAll();
+		for(TB_REPLICACAO_PROCESSO p : processos){
+			cbProcesso.addItem(p);
+		}
+
 		txfId.setEnabled(false);
 		cbProcesso.setEnabled(false);
 		chkHabilitado.setEnabled(false);
@@ -183,7 +194,7 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 				t.setDs_where(txtDsWhere.getText());
 
 				if (modoTela == TelaReplicacaoProcessoTabelaView.ModoTela.INSERT) {
-					dao.insert(t);
+					daoTabela.insert(t);
 					JOptionPane.showMessageDialog(this, "Inserido com sucesso");
 				} else if (modoTela == TelaReplicacaoProcessoTabelaView.ModoTela.UPDATE) {
 					if (txfId.getText().trim().isEmpty()){
@@ -191,7 +202,7 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 						return;
 					}
 					t.setId(Integer.parseInt(txfId.getText()));
-					dao.update(t);
+					daoTabela.update(t);
 					JOptionPane.showMessageDialog(this, "Atualizado com sucesso");
 				} else {
 					JOptionPane.showMessageDialog(this, "Clique em Adicionar ou Buscar antes de salvar");
@@ -226,7 +237,7 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 				if (op != JOptionPane.YES_OPTION) return;
 
 				long id = Long.parseLong(txfId.getText());
-				dao.delete(id);
+				daoTabela.delete(id);
 				JOptionPane.showMessageDialog(this, "Processo excluído!");
 
 				modoTela = ModoTela.NENHUM;
@@ -262,7 +273,7 @@ public class TelaReplicacaoProcessoTabelaView extends JFrame {
 
 		btnBuscar.addActionListener(e -> {
 			try{
-				ConsultarProcessoTabelaDialog dlg = new ConsultarProcessoTabelaDialog(this, dao);
+				ConsultarProcessoTabelaDialog dlg = new ConsultarProcessoTabelaDialog(this, daoTabela);
 				dlg.setVisible(true);
 
 				TB_REPLICACAO_PROCESSO_TABELA sel = dlg.getSelecionado();
