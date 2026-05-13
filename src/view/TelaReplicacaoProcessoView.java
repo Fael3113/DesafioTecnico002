@@ -63,24 +63,27 @@ public class TelaReplicacaoProcessoView extends JFrame {
 
 		// --- Processo ---
 		JLabel lblProcesso = new JLabel("Processo:");
-		lblProcesso.setBounds(10, 140, 120, 25);
+		lblProcesso.setBounds(10, 105, 120, 25);
 		getContentPane().add(lblProcesso);
 		txfProcesso = new JTextField();
-		txfProcesso.setBounds(140, 140, 400, 25);
+		txfProcesso.setBounds(140, 105, 400, 25);
 		getContentPane().add(txfProcesso);
 
 		// --- Descrição ---
 		JLabel lblDescricao = new JLabel("Descricao:");
-		lblDescricao.setBounds(10, 210, 120, 25);
+		lblDescricao.setBounds(10, 140, 120, 25);
 		getContentPane().add(lblDescricao);
 		txfDescricao = new JTextField();
-		txfDescricao.setBounds(140, 210, 400, 25);
+		txfDescricao.setBounds(140, 140, 400, 25);
 		getContentPane().add(txfDescricao);
 
 		// --- Habilitado ---
-		JCheckBox chckHabilitado = new JCheckBox("Habilitado");
-		chckHabilitado.setBounds(10, 280, 100, 30);
-		getContentPane().add(chckHabilitado);
+		JLabel lblHabilitado = new JLabel("HABILITADO:");
+		lblHabilitado.setBounds(10, 175, 120, 25);
+		getContentPane().add(lblHabilitado);
+		chkHabilitado = new JCheckBox("Sim");
+		chkHabilitado.setBounds(140, 175, 80, 25);
+		getContentPane().add(chkHabilitado);
 
 		txfId.setEnabled(false);
 		txfProcesso.setEnabled(false);
@@ -95,9 +98,9 @@ public class TelaReplicacaoProcessoView extends JFrame {
 			txfId.setText("");
 			txfProcesso.setText("");
 			txfDescricao.setText("");
-			chckHabilitado.setSelected(false);
+			chkHabilitado.setSelected(false);
 
-			txfId.setEnabled(true);
+			txfId.setEnabled(false);
 			txfProcesso.setEnabled(true);
 			txfDescricao.setEnabled(true);
 			chkHabilitado.setEnabled(true);
@@ -116,7 +119,7 @@ public class TelaReplicacaoProcessoView extends JFrame {
 				TB_REPLICACAO_PROCESSO p = new TB_REPLICACAO_PROCESSO();
 				p.setProcesso(txfProcesso.getText().trim());
 				p.setDescricao(txfDescricao.getText().trim());
-				p.setHabilitado(chckHabilitado.isSelected());
+				p.setHabilitado(chkHabilitado.isSelected());
 
 				if (modoTela == ModoTela.INSERT){
 					dao.insert(p);
@@ -166,7 +169,7 @@ public class TelaReplicacaoProcessoView extends JFrame {
 				txfId.setText("");
 				txfProcesso.setText("");
 				txfDescricao.setText("");
-				chckHabilitado.setSelected(false);
+				chkHabilitado.setSelected(false);
 
 				txfProcesso.setEnabled(false);
 				txfDescricao.setEnabled(false);
@@ -193,7 +196,7 @@ public class TelaReplicacaoProcessoView extends JFrame {
 				txfId.setText(String.valueOf(selecionado.getId()));
 				txfProcesso.setText(selecionado.getProcesso());
 				txfDescricao.setText(selecionado.getDescricao());
-				chckHabilitado.setSelected(selecionado.isHabilitado());
+				chkHabilitado.setSelected(selecionado.isHabilitado());
 
 				txfProcesso.setEnabled(true);
 				txfDescricao.setEnabled(true);
