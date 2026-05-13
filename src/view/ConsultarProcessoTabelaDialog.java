@@ -32,7 +32,7 @@ public class ConsultarProcessoTabelaDialog extends JDialog {
 		model.addColumn("ORDEM");
 		model.addColumn("HABILITADO");
 
-		ArrayList<TB_REPLICACAO_PROCESSO_TABELA> lista = new ArrayList<>();
+		ArrayList<TB_REPLICACAO_PROCESSO_TABELA> lista = dao.selectAll();
 		for (TB_REPLICACAO_PROCESSO_TABELA p : lista){
 			model.addRow(new Object[]{
 					p.getId(),

@@ -30,7 +30,7 @@ public class ConsultarProcessoDialog extends JDialog {
 		model.addColumn("DESCRICAO");
 		model.addColumn("HABILITADO");
 
-		ArrayList<TB_REPLICACAO_PROCESSO> lista = new ArrayList<>();
+		ArrayList<TB_REPLICACAO_PROCESSO> lista = dao.selectAll();
 		for (TB_REPLICACAO_PROCESSO p : lista){
 			model.addRow(new Object[]{
 					p.getId(),

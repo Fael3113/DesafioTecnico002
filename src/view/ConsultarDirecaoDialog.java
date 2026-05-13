@@ -31,7 +31,7 @@ public class ConsultarDirecaoDialog extends JDialog {
 		model.addColumn("DIRECAO DESTINO");
 		model.addColumn("HABILITADO");
 
-		ArrayList<TB_REPLICACAO_DIRECAO> lista = new ArrayList<>();
+		ArrayList<TB_REPLICACAO_DIRECAO> lista = dao.selectAll();
 		for (TB_REPLICACAO_DIRECAO p : lista){
 			model.addRow(new Object[]{
 					p.getId(),
