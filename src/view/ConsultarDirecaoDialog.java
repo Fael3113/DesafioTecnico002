@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class ConsultarDirecaoDialog extends JDialog {
@@ -18,7 +19,7 @@ public class ConsultarDirecaoDialog extends JDialog {
 	private TB_REPLICACAO_DIRECAO selecionado;
 
 	public ConsultarDirecaoDialog(JFrame parent, DirecaoDAO dao) throws Exception {
-		super(parent, "Consulta Direção");
+		super(parent, "Consulta Direção", true);
 		setSize(700, 500);
 		setLocationRelativeTo(parent);
 		setResizable(false);
@@ -66,14 +67,15 @@ public class ConsultarDirecaoDialog extends JDialog {
 				return;
 			}
 
-			TB_REPLICACAO_DIRECAO p = new TB_REPLICACAO_DIRECAO();
-			p.setId(Integer.parseInt(table.getValueAt(selectedRow, 0).toString()));
-			p.setProcesso_id(Integer.parseInt(table.getValueAt(selectedRow, 1).toString()));
-			p.setDirecao_origem(table.getValueAt(selectedRow, 2).toString());
-			p.setDirecao_destino(table.getValueAt(selectedRow, 3).toString());
-			p.setHabilitado(Boolean.parseBoolean(table.getValueAt(selectedRow, 8).toString()));
+			long id = Long.parseLong(table.getValueAt(selectedRow, 0).toString());
+			TB_REPLICACAO_DIRECAO d = null;
+			try {
+				d = dao.selectById(id);
+			} catch (SQLException ex) {
+				throw new RuntimeException(ex);
+			}
 
-			selecionado = p;
+			selecionado = d;
 			dispose();
 		});
 

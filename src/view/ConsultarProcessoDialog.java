@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class ConsultarProcessoDialog extends JDialog {
@@ -18,7 +19,7 @@ public class ConsultarProcessoDialog extends JDialog {
 	private TB_REPLICACAO_PROCESSO selecionado;
 
 	public ConsultarProcessoDialog(JFrame parent, ProcessoDAO dao) throws Exception {
-		super(parent, "Consulta Processo");
+		super(parent, "Consulta Processo", true);
 		setSize(700, 400);
 		setLocationRelativeTo(parent);
 		setResizable(false);
@@ -60,15 +61,17 @@ public class ConsultarProcessoDialog extends JDialog {
 		btnSelecionar.addActionListener(e -> {
 			int selectedRow = table.getSelectedRow();
 			if (selectedRow == -1) {
-				JOptionPane.showMessageDialog(null, "Selecione um processo");
+				JOptionPane.showMessageDialog(this, "Selecione um processo");
 				return;
 			}
 
-			TB_REPLICACAO_PROCESSO p = new TB_REPLICACAO_PROCESSO();
-			p.setId(Integer.parseInt(table.getValueAt(selectedRow, 0).toString()));
-			p.setProcesso(table.getValueAt(selectedRow, 1).toString());
-			p.setDescricao(table.getValueAt(selectedRow, 2).toString());
-			p.setHabilitado(Boolean.parseBoolean(table.getValueAt(selectedRow, 3).toString()));
+			long id = Long.parseLong(table.getValueAt(selectedRow, 0).toString());
+			TB_REPLICACAO_PROCESSO p = null;
+			try {
+				p = dao.selectById(id);
+			} catch (SQLException ex) {
+				throw new RuntimeException(ex);
+			}
 
 			selecionado = p;
 			dispose();
