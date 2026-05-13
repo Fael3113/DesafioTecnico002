@@ -1,4 +1,9 @@
+import view.TelaReplicacaoDirecaoView;
+import view.TelaReplicacaoProcessoTabelaView;
+import view.TelaReplicacaoProcessoView;
+
 import javax.swing.*;
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,6 +24,17 @@ public class Main extends JFrame {
 		desktop = new JDesktopPane();
 		setContentPane(desktop);
 
+		JMenu menuSistema = getJMenuSistema();
+
+		JMenu menuCadastro = getJMenuCadastro();
+
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(menuSistema);
+		menuBar.add(menuCadastro);
+		setJMenuBar(menuBar);
+	}
+
+	private JMenu getJMenuSistema(){
 		JMenu menuSistema = new JMenu("Sistema");
 
 		JMenuItem itemExecutar = new JMenuItem("Executar Replicação");
@@ -37,25 +53,84 @@ public class Main extends JFrame {
 			System.exit(0);
 		});
 		menuSistema.add(itemSair);
+		return menuSistema;
+	}
 
+	private JMenu getJMenuCadastro() {
 		JMenu menuCadastro = new JMenu("Cadastro");
 
 		JMenuItem itemProcesso = new JMenuItem("Processos");
-		itemProcesso.addActionListener(e -> {});
+		itemProcesso.addActionListener(e -> {
+			abrirTelaInternaProcessos();
+		});
 		menuCadastro.add(itemProcesso);
 
 		JMenuItem itemProcessoTabela = new JMenuItem("Processo x Tabelas");
-		itemProcessoTabela.addActionListener(e -> {});
+		itemProcessoTabela.addActionListener(e -> {
+			abrirTelaInternaProcessoTabela();
+		});
 		menuCadastro.add(itemProcessoTabela);
 
 		JMenuItem itemDirecao = new JMenuItem("Direções");
-		itemDirecao.addActionListener(e -> {});
+		itemDirecao.addActionListener(e -> {
+			abrirTelaInternaDirecoes();
+		});
 		menuCadastro.add(itemDirecao);
+		return menuCadastro;
+	}
 
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(menuSistema);
-		menuBar.add(menuCadastro);
-		setJMenuBar(menuBar);
+	private void abrirTelaInternaProcessos(){
+		try{
+			TelaReplicacaoProcessoView tela = new TelaReplicacaoProcessoView(conn);
+
+			JInternalFrame internalFrame = new JInternalFrame("Processos", true, true, true, true);
+			internalFrame.setSize(650, 360);
+			internalFrame.setLayout(new BorderLayout());
+			internalFrame.add(tela.getContentPane(), BorderLayout.CENTER);
+			internalFrame.setVisible(true);
+			desktop.add(internalFrame);
+			internalFrame.setSelected(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Erro ao abrir tela:" + e.getMessage());
+		}
+	}
+
+	private void abrirTelaInternaDirecoes(){
+		try{
+			TelaReplicacaoDirecaoView tela = new TelaReplicacaoDirecaoView(conn);
+
+			JInternalFrame internalFrame = new JInternalFrame("Cadastro de Direções", true, true, true, true);
+			internalFrame.setSize(820, 520);
+			internalFrame.setLayout(new BorderLayout());
+			internalFrame.add(tela.getContentPane(), BorderLayout.CENTER);
+			internalFrame.setVisible(true);
+			desktop.add(internalFrame);
+			internalFrame.setSelected(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Erro ao abrir tela:" + e.getMessage());
+		}
+	}
+
+	private void abrirTelaInternaProcessoTabela(){
+		try{
+			TelaReplicacaoProcessoTabelaView tela = new TelaReplicacaoProcessoTabelaView(conn);
+
+			JInternalFrame internalFrame = new JInternalFrame("Cadastro de Processos x Tabela", true, true, true, true);
+			internalFrame.setSize(720, 500);
+			internalFrame.setLayout(new BorderLayout());
+			internalFrame.add(tela.getContentPane(), BorderLayout.CENTER);
+			internalFrame.setVisible(true);
+			desktop.add(internalFrame);
+			internalFrame.setSelected(true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Erro ao abrir tela:" + e.getMessage());
+		}
 	}
 
 	public static void main(String[] args) {
