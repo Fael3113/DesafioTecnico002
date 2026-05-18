@@ -10,6 +10,7 @@ import database.model.TB_REPLICACAO_PROCESSO_TABELA;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ReplicacaoExecutar {
 
@@ -21,10 +22,11 @@ public class ReplicacaoExecutar {
 		this.connControle = connControle;
 		System.out.println("Replicação iniciada. Acompanhe pelo console ou log");
 		ReplicacaoIniciar();
+		ReplicacaoFinilizar();
 		System.out.println("Replicação finalizada. Aguardando início da próxima replicação");
 	}
 
-	private void ReplicacaoIniciar() {
+	private void ReplicacaoIniciar(){
 
 		ProcessoDAO replicacaoProcessoDAO = null;
 		try {
@@ -103,6 +105,130 @@ public class ReplicacaoExecutar {
 
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private void ReplicacaoFinilizar(){
+
+		try {
+			String sqlFile = "SELECT id, nome_tabela, id_linha, operacao "+
+					"FROM fila_replicacao "+
+					"WHERE processed_at IS NULL "+
+					"ORDER BY occurred_at";
+
+			String sqlMark = "UPDATE fila_replicacao SET processed_at = NOW() WHERE id = ?";
+
+			ResultSet rsFile = null;
+			PreparedStatement psFile = null;
+			PreparedStatement psMark = null;
+
+			try {
+				psFile = connOrigem.prepareStatement(sqlFile);
+				rsFile = psFile.executeQuery();
+
+				psMark = connOrigem.prepareStatement(sqlMark);
+
+				while (rsFile.next()) {
+					long queueId = rsFile.getLong("id");
+					String nomeTabela = rsFile.getString("nome_tabela");
+					long id_linha = rsFile.getLong("id_linha");
+					String operacao = rsFile.getString("operacao");
+
+					System.out.println("Fila: tabela="+nomeTabela+", id="+id_linha+", operacao="+operacao);
+
+					if ("D".equalsIgnoreCase(operacao)) {
+						String sqlDelete = "DELETE FROM " +nomeTabela+ " WHERE id = ?";
+
+						try(PreparedStatement psDelete = connDestino.prepareStatement(sqlDelete)) {
+							psDelete.setLong(1, id_linha);
+							psDelete.executeUpdate();
+						}
+					} else if ("U".equalsIgnoreCase(operacao)) {
+						String sqlSelect = "SELECT * FROM "  + nomeTabela + " WHERE id = ?";
+
+						try (PreparedStatement psSelect = connOrigem.prepareStatement(sqlSelect)) {
+							psSelect.setLong(1, id_linha);
+
+							try (ResultSet rs = psSelect.executeQuery()) {
+								if (rs.next()) {
+									ResultSetMetaData metaData = rs.getMetaData();
+									int columnCount = metaData.getColumnCount();
+
+									StringBuilder set = new StringBuilder();
+									List<Integer> cols = new ArrayList<>();
+
+									for (int i = 1; i <= columnCount; i++) {
+										String columnName = metaData.getColumnName(i);
+
+										if ("id".equalsIgnoreCase(columnName)) continue;
+
+										if (!set.isEmpty()) set.append(", ");
+										set.append(columnName).append(" = ?");
+										cols.add(i);
+									}
+
+									String sqlUpdate = "UPDATE "+ nomeTabela+ " SET "+set+ " WHERE id = ?";
+
+									try (PreparedStatement psUpdate = connDestino.prepareStatement(sqlUpdate)) {
+										int p = 1;
+										for (Integer i : cols) {
+											Object value = rs.getObject(i);
+											psUpdate.setObject(p++, value);
+										}
+										psUpdate.setLong(p, id_linha);
+
+										int updated = psUpdate.executeUpdate();
+
+										if (updated == 0) {
+											StringBuilder colNames = new StringBuilder();
+											StringBuilder qs = new StringBuilder();
+											List<Integer> colsInsert = new ArrayList<>();
+
+											for (int i = 1; i <= columnCount; i++) {
+												String columnName = metaData.getColumnName(i);
+
+												if (!colNames.isEmpty()){
+													colNames.append(", ");
+													qs.append(", ");
+												}
+												colNames.append(columnName);
+												qs.append("?");
+												colsInsert.add(i);
+											}
+
+											String sqlInsert = "INSERT INTO "+ nomeTabela+ " ("+colNames+") VALUES ("+qs+")";
+
+											try (PreparedStatement psInsert = connDestino.prepareStatement(sqlInsert)) {
+												int pi = 1;
+												for (Integer i : colsInsert) {
+													Object value = rs.getObject(i);
+													psInsert.setObject(pi++, value);
+												}
+												psInsert.executeUpdate();
+											}
+										}
+									}
+								} else {
+									String sqlDelete = "DELETE FROM " +nomeTabela+ " WHERE id = ?";
+									try (PreparedStatement psDelete = connDestino.prepareStatement(sqlDelete)) {
+										psDelete.setLong(1, id_linha);
+										psDelete.executeUpdate();
+									}
+								}
+							}
+						}
+					}
+					psMark.setLong(1, queueId);
+					psMark.executeUpdate();
+				}
+			} finally {
+				if (rsFile != null) rsFile.close();
+				if (psFile != null) psFile.close();
+				if (psMark != null) psMark.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Falha na finalização da replicação: "+e.getMessage());
 		}
 	}
 
