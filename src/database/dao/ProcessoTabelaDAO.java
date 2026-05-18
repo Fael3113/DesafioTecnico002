@@ -106,6 +106,7 @@ public class ProcessoTabelaDAO {
 		pstUpdate.setInt(4, tb.getOrdem());
 		pstUpdate.setBoolean(5, tb.isHabilitado());
 		pstUpdate.setString(6, tb.getDs_where());
+		pstUpdate.setLong(7, tb.getId());
 		pstUpdate.executeUpdate();
 	}
 
